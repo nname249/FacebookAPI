@@ -320,4 +320,8 @@ POST https://www.facebook.com/api/graphql/
 
 ## 📄 License
 
-Dự án này chỉ dành cho **mục đích học tập**. Không dùng cho mục đích thương mại hay vi phạm điều khoản dịch vụ.
+Dự án này được phát hành dưới giấy phép **[MIT License](LICENSE)**.
+
+Bạn được phép sử dụng, sao chép, chỉnh sửa và phân phối tự do, miễn là giữ nguyên thông tin bản quyền gốc.
+
+> ⚠️ Dù có giấy phép MIT, công cụ này chỉ nên dùng cho **mục đích học tập và nghiên cứu**. Việc tự động hóa tài khoản vi phạm **Terms of Service của Facebook**.

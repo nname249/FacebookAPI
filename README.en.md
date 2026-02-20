@@ -320,4 +320,8 @@ POST https://www.facebook.com/api/graphql/
 
 ## 📄 License
 
-This project is for **educational purposes only**. Do not use it for commercial purposes or in violation of the Terms of Service.
+This project is released under the **[MIT License](LICENSE)**.
+
+You are free to use, copy, modify, and distribute this software, as long as the original copyright notice is retained.
+
+> ⚠️ Despite the MIT license, this tool should only be used for **educational and research purposes**. Automating Facebook accounts violates **Facebook’s Terms of Service**.
