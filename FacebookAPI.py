@@ -21,14 +21,16 @@
 
 # ──────────────────────────────────────────────────────────────────
 # KẾT QUẢ CHẠY THỬ (TEST RESULT)
-# 1. info()              ✅ - Lần cuối 20/2/2026
-# 2. reaction()          ✅ - Lần cuối 20/2/2026
-# 3. reaction_comment()  ✅ - Lần cuối 20/2/2026
-# 4. share()             ✅ - Lần cuối 20/2/2026
-# 5. comment()           ✅ - Lần cuối 20/2/2026
-# 6. follow()            ✅ - Lần cuối 20/2/2026
-# 7. join_group()        ✅ - Lần cuối 20/2/2026
-# 8. like_page()         ✅ - Lần cuối 20/2/2026
+# 1.  info()                  ✅ - Lần cuối 20/2/2026
+# 2.  reaction()              ✅ - Lần cuối 20/2/2026
+# 3.  reaction_comment()      ✅ - Lần cuối 20/2/2026
+# 4.  share()                 ✅ - Lần cuối 20/2/2026
+# 5.  share_with_message()    ✅ - Lần cuối 21/2/2026
+# 6.  rate_page()             ✅ - Lần cuối 21/2/2026
+# 7.  comment()               ✅ - Lần cuối 20/2/2026
+# 8.  follow()                ✅ - Lần cuối 20/2/2026
+# 9.  join_page()             ✅ - Lần cuối 20/2/2026
+# 10. like_page()             ✅ - Lần cuối 20/2/2026
 # ──────────────────────────────────────────────────────────────────
 
 
@@ -495,6 +497,357 @@ class FacebookAPI:
         return False
 
     # ──────────────────────────────────────────────────────────────
+    # CHIA SẺ BÀI VIẾT KÈM NỘI DUNG (SHARE WITH MESSAGE)
+    # ──────────────────────────────────────────────────────────────
+
+    def share_with_message(self, post_id: str, message: str = "") -> bool:
+        """
+        Chia sẻ một bài viết lên tường cá nhân kèm nội dung (caption).
+
+        Endpoint nội bộ: POST /api/graphql/ (ComposerStoryCreateMutation)
+
+        Khác với share() ở chỗ:
+            - Truyền thêm nội dung caption vào trường message.text
+            - doc_id mới lấy từ request thật (2026-02-21)
+            - surface = "timeline" (thay vì "newsfeed")
+
+        Args:
+            post_id: ID bài viết cần share (phần số thuần).
+                     Nếu dạng "user_post", tự động tách.
+                     Ví dụ: "122115153717187122"
+            message: Nội dung caption muốn kèm khi share.
+                     Ví dụ: "Hay quá! 🔥"
+                     Mặc định là "" (share không kèm nội dung → giống share()).
+
+        Returns:
+            True nếu thành công, False nếu thất bại.
+
+        Cập nhật 2026-02-21: doc_id lấy từ request thật (ComposerStoryCreateMutation).
+        """
+        import json as _json
+
+        if "_" in post_id:
+            post_id = post_id.split("_")[1]
+
+        session_id       = str(uuid.uuid4())
+        idempotence_token = f"{uuid.uuid4()}_FEED"
+
+        share_scrape_data = f'{{"share_type":22,"share_params":[{post_id}]}}'
+
+        variables = {
+            "input": {
+                "composer_entry_point": "share_modal",
+                "composer_source_surface": "feed_story",
+                "composer_type": "share",
+                "idempotence_token": idempotence_token,
+                "source": "WWW",
+                "attachments": [{"link": {"share_scrape_data": share_scrape_data}}],
+                "reshare_original_post": "RESHARE_ORIGINAL_POST",
+                "audience": {
+                    "privacy": {
+                        "allow": [],
+                        "base_state": "EVERYONE",
+                        "deny": [],
+                        "tag_expansion_state": "UNSPECIFIED",
+                    }
+                },
+                "is_tracking_encrypted": True,
+                "tracking": [],
+                # ← Đây là điểm khác biệt chính so với share()
+                "message": {"ranges": [], "text": message},
+                "logging": {"composer_session_id": session_id},
+                "navigation_data": {
+                    "attribution_id_v2": (
+                        f"ProfileCometTimelineListViewRoot.react,"
+                        f"comet.profile.timeline.list,unexpected,"
+                        f"1771650963547,198694,{self.actor_id},,;"
+                        f"ProfileCometTimelineListViewRoot.react,"
+                        f"comet.profile.timeline.list,tap_bookmark,"
+                        f"1771650957795,89632,{self.actor_id},"
+                        f"304#10#230#340#301,"
+                    )
+                },
+                # ← surface = "timeline" thay vì "newsfeed"
+                "event_share_metadata": {"surface": "timeline"},
+                "actor_id": self.actor_id,
+                "client_mutation_id": "2",
+            },
+            "feedLocation": "NEWSFEED",
+            "feedbackSource": 1,
+            "focusCommentID": None,
+            "gridMediaWidth": None,
+            "groupID": None,
+            "scale": 1,
+            "privacySelectorRenderLocation": "COMET_STREAM",
+            "checkPhotosToReelsUpsellEligibility": False,
+            "referringStoryRenderLocation": None,
+            "renderLocation": "homepage_stream",
+            "useDefaultActor": False,
+            "inviteShortLinkKey": None,
+            "isFeed": True,
+            "isFundraiser": False,
+            "isFunFactPost": False,
+            "isGroup": False,
+            "isEvent": False,
+            "isTimeline": False,
+            "isSocialLearning": False,
+            "isPageNewsFeed": False,
+            "isProfileReviews": False,
+            "isWorkSharedDraft": False,
+            "hashtag": None,
+            "canUserManageOffers": False,
+            "__relay_internal__pv__CometUFIShareActionMigrationrelayprovider": True,
+            "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider": True,
+            "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider": True,
+            "__relay_internal__pv__CometUFI_dedicated_comment_routable_dialog_gkrelayprovider": False,
+            "__relay_internal__pv__CometUFICommentAvatarStickerAnimatedImagerelayprovider": False,
+            "__relay_internal__pv__CometUFICommentActionLinksRewriteEnabledrelayprovider": False,
+            "__relay_internal__pv__IsWorkUserrelayprovider": False,
+            "__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider": False,
+            "__relay_internal__pv__CometUFISingleLineUFIrelayprovider": False,
+            "__relay_internal__pv__TestPilotShouldIncludeDemoAdUseCaserelayprovider": False,
+            "__relay_internal__pv__FBReels_deprecate_short_form_video_context_gkrelayprovider": True,
+            "__relay_internal__pv__FBReels_enable_view_dubbed_audio_type_gkrelayprovider": True,
+            "__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider": False,
+            "__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider": False,
+            "__relay_internal__pv__IsMergQAPollsrelayprovider": False,
+            "__relay_internal__pv__FBReels_enable_meta_ai_label_gkrelayprovider": True,
+            "__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider": True,
+            "__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider": True,
+            "__relay_internal__pv__FBReelsIFUTileContent_reelsIFUPlayOnHoverrelayprovider": True,
+            "__relay_internal__pv__GroupsCometGYSJFeedItemHeightrelayprovider": 206,
+            "__relay_internal__pv__ShouldEnableBakedInTextStoriesrelayprovider": False,
+            "__relay_internal__pv__StoriesShouldIncludeFbNotesrelayprovider": False,
+            "__relay_internal__pv__groups_comet_use_glvrelayprovider": False,
+            "__relay_internal__pv__GHLShouldChangeSponsoredAuctionDistanceFieldNamerelayprovider": False,
+            "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV1relayprovider": False,
+            "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV2relayprovider": False,
+        }
+
+        data = {
+            "av":                          self.actor_id,
+            "__user":                      self.actor_id,
+            "__a":                         "1",
+            "__hs":                        "20505.HCSV2:comet_pkg.2.1...0",
+            "dpr":                         "1",
+            "__ccg":                       "EXCELLENT",
+            "__rev":                       "1033825359",
+            "fb_dtsg":                     self.fb_dtsg,
+            "jazoest":                     self.jazoest,
+            "lsd":                         self.lsd,
+            "fb_api_caller_class":         "RelayModern",
+            "fb_api_req_friendly_name":    "ComposerStoryCreateMutation",
+            "variables":                   _json.dumps(variables),
+            "server_timestamps":           "true",
+            "doc_id":                      "25890641460638978",  # ⚠️ Cập nhật 2026-02-21
+        }
+
+        headers = {
+            **self.headers,
+            "content-type":           "application/x-www-form-urlencoded",
+            "x-fb-lsd":               self.lsd,
+            "x-fb-friendly-name":     "ComposerStoryCreateMutation",
+            "x-asbd-id":              "359341",
+            "referer":                f"https://www.facebook.com/profile.php?id={self.actor_id}",
+        }
+
+        response = requests.post(
+            "https://www.facebook.com/api/graphql/",
+            headers=headers,
+            data=data,
+            proxies=self.proxies,
+            timeout=15
+        )
+
+        if not response.text or '"errors"' not in response.text:
+            return True
+
+        try:
+            resp_json = response.json()
+            for err in resp_json.get("errors", []):
+                if err.get("severity") == "CRITICAL":
+                    print(f"   ⚠️ Lỗi share_with_message: {err.get('description', err.get('message', ''))}")
+                    break
+        except Exception:
+            print(f"   ⚠️ Response không parse được: {response.status_code} | {response.text[:200]}")
+        return False
+
+    # ──────────────────────────────────────────────────────────────
+    # ĐÁNH GIÁ TRANG (RATE PAGE)
+    # ──────────────────────────────────────────────────────────────
+
+    def rate_page(self, page_id: str, text: str, rec_type: str = "POSITIVE") -> bool:
+        """
+        Đánh giá (rate/review) một Facebook Page.
+
+        Endpoint nội bộ: POST /api/graphql/ (ComposerStoryCreateMutation)
+
+        Args:
+            page_id:  ID số của trang cần đánh giá.
+                      Ví dụ: "532762067182594"
+            text:     Nội dung đánh giá.
+                      Ví dụ: "Nhân viên thân thiện, không gian đẹp!"
+            rec_type: Loại đánh giá:
+                        "POSITIVE" → đánh giá tích cực (👍, mặc định)
+                        "NEGATIVE" → đánh giá tiêu cực (👎)
+
+        Returns:
+            True nếu đánh giá thành công, False nếu thất bại.
+
+        Cập nhật 2026-02-21: doc_id và variables lấy từ request thật.
+        """
+        import json as _json
+
+        rec_type = rec_type.upper()
+        if rec_type not in ("POSITIVE", "NEGATIVE"):
+            print("❌ rec_type phải là 'POSITIVE' hoặc 'NEGATIVE'")
+            return False
+
+        session_id        = str(uuid.uuid4())
+        idempotence_token = f"{uuid.uuid4()}_FEED"
+
+        variables = {
+            "input": {
+                "composer_entry_point":    "inline_composer",
+                "composer_source_surface": "page_recommendation_tab",
+                "idempotence_token":       idempotence_token,
+                "source":                  "WWW",
+                "audience": {
+                    "privacy": {
+                        "allow":              [],
+                        "base_state":         "EVERYONE",
+                        "deny":               [],
+                        "tag_expansion_state": "UNSPECIFIED",
+                    }
+                },
+                "message":              {"ranges": [], "text": text},
+                "with_tags_ids":        None,
+                "text_format_preset_id": "0",
+                # ← Field quan trọng: chứa page_id và loại đánh giá
+                "page_recommendation": {
+                    "page_id":  page_id,
+                    "rec_type": rec_type,
+                },
+                "logging":          {"composer_session_id": session_id},
+                "navigation_data":  {
+                    "attribution_id_v2": (
+                        f"ProfileCometReviewsTabRoot.react,"
+                        f"comet.profile.reviews,unexpected,"
+                        f"1771651461028,277212,250100865708545,,;"
+                        f"ProfileCometMentionsTabWithDeepDiveRoot.react,"
+                        f"comet.profile.mentions,unexpected,"
+                        f"1771651443578,534635,250100865708545,,"
+                    )
+                },
+                "tracking":            [None],
+                "event_share_metadata": {"surface": "newsfeed"},
+                "actor_id":            self.actor_id,
+                "client_mutation_id":  "6",
+            },
+            "feedLocation":                       "PAGE_SURFACE_RECOMMENDATIONS",
+            "feedbackSource":                     0,
+            "focusCommentID":                     None,
+            "gridMediaWidth":                     None,
+            "groupID":                            None,
+            "scale":                              1,
+            "privacySelectorRenderLocation":      "COMET_STREAM",
+            "checkPhotosToReelsUpsellEligibility": False,
+            "referringStoryRenderLocation":       None,
+            "renderLocation":                     "timeline",
+            "useDefaultActor":                    False,
+            "inviteShortLinkKey":                 None,
+            "isFeed":                             False,
+            "isFundraiser":                       False,
+            "isFunFactPost":                      False,
+            "isGroup":                            False,
+            "isEvent":                            False,
+            "isTimeline":                         True,   # ← khác share()
+            "isSocialLearning":                   False,
+            "isPageNewsFeed":                     False,
+            "isProfileReviews":                   True,   # ← khác share()
+            "isWorkSharedDraft":                  False,
+            "hashtag":                            None,
+            "canUserManageOffers":                False,
+            "__relay_internal__pv__CometUFIShareActionMigrationrelayprovider":              True,
+            "__relay_internal__pv__GHLShouldChangeSponsoredDataFieldNamerelayprovider":     True,
+            "__relay_internal__pv__GHLShouldChangeAdIdFieldNamerelayprovider":              True,
+            "__relay_internal__pv__CometUFI_dedicated_comment_routable_dialog_gkrelayprovider": False,
+            "__relay_internal__pv__CometUFICommentAvatarStickerAnimatedImagerelayprovider": False,
+            "__relay_internal__pv__CometUFICommentActionLinksRewriteEnabledrelayprovider":  False,
+            "__relay_internal__pv__IsWorkUserrelayprovider":                                False,
+            "__relay_internal__pv__CometUFIReactionsEnableShortNamerelayprovider":          False,
+            "__relay_internal__pv__CometUFISingleLineUFIrelayprovider":                     False,
+            "__relay_internal__pv__TestPilotShouldIncludeDemoAdUseCaserelayprovider":       False,
+            "__relay_internal__pv__FBReels_deprecate_short_form_video_context_gkrelayprovider": True,
+            "__relay_internal__pv__FBReels_enable_view_dubbed_audio_type_gkrelayprovider":  True,
+            "__relay_internal__pv__CometImmersivePhotoCanUserDisable3DMotionrelayprovider": False,
+            "__relay_internal__pv__WorkCometIsEmployeeGKProviderrelayprovider":             False,
+            "__relay_internal__pv__IsMergQAPollsrelayprovider":                             False,
+            "__relay_internal__pv__FBReels_enable_meta_ai_label_gkrelayprovider":           True,
+            "__relay_internal__pv__FBReelsMediaFooter_comet_enable_reels_ads_gkrelayprovider": True,
+            "__relay_internal__pv__StoriesArmadilloReplyEnabledrelayprovider":              True,
+            "__relay_internal__pv__FBReelsIFUTileContent_reelsIFUPlayOnHoverrelayprovider": True,
+            "__relay_internal__pv__GroupsCometGYSJFeedItemHeightrelayprovider":             206,
+            "__relay_internal__pv__ShouldEnableBakedInTextStoriesrelayprovider":            False,
+            "__relay_internal__pv__StoriesShouldIncludeFbNotesrelayprovider":               False,
+            "__relay_internal__pv__groups_comet_use_glvrelayprovider":                      False,
+            "__relay_internal__pv__GHLShouldChangeSponsoredAuctionDistanceFieldNamerelayprovider": False,
+            "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV1relayprovider": False,
+            "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV2relayprovider": False,
+        }
+
+        data = {
+            "av":                          self.actor_id,
+            "__user":                      self.actor_id,
+            "__a":                         "1",
+            "__hs":                        "20505.HCSV2:comet_pkg.2.1...0",
+            "dpr":                         "1",
+            "__ccg":                       "EXCELLENT",
+            "__rev":                       "1033825359",
+            "fb_dtsg":                     self.fb_dtsg,
+            "jazoest":                     self.jazoest,
+            "lsd":                         self.lsd,
+            "qpl_active_flow_ids":         "431626709",            # ← có trong curl thật
+            "fb_api_caller_class":         "RelayModern",
+            "fb_api_req_friendly_name":    "ComposerStoryCreateMutation",
+            "variables":                   _json.dumps(variables),
+            "server_timestamps":           "true",
+            "doc_id":                      "25890641460638978",
+            "fb_api_analytics_tags":       '["qpl_active_flow_ids=431626709"]',  # ← thiếu ở lần trước!
+        }
+
+        headers = {
+            **self.headers,
+            "content-type":           "application/x-www-form-urlencoded",
+            "x-fb-lsd":               self.lsd,
+            "x-fb-friendly-name":     "ComposerStoryCreateMutation",
+            "x-asbd-id":              "359341",
+            "referer":                f"https://www.facebook.com/profile.php?id={page_id}&sk=reviews",
+        }
+
+        response = requests.post(
+            "https://www.facebook.com/api/graphql/",
+            headers=headers,
+            data=data,
+            proxies=self.proxies,
+            timeout=15
+        )
+
+        if not response.text or '"errors"' not in response.text:
+            return True
+
+        try:
+            resp_json = response.json()
+            all_errors = resp_json.get("errors", [])
+            for err in all_errors:
+                if err.get("severity") == "CRITICAL":
+                    print(f"   ⚠️ Lỗi rate_page: {err.get('description', err.get('message', ''))}")
+                    break
+        except Exception as e:
+            print(f"   ⚠️ Response không parse được: {response.status_code} | {response.text[:500]}")
+        return False
+
+    # ──────────────────────────────────────────────────────────────
     # BÌNH LUẬN BÀI VIẾT (COMMENT)
     # ──────────────────────────────────────────────────────────────
 
@@ -705,7 +1058,7 @@ class FacebookAPI:
     # THAM GIA NHÓM (JOIN GROUP)
     # ──────────────────────────────────────────────────────────────
 
-    def join_group(self, group_id: str) -> bool:
+    def join_page(self, group_id: str) -> bool:
         """
         Tham gia vào một Facebook Group.
 
