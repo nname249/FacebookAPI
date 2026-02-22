@@ -24,7 +24,7 @@
 # 1.  info()                  ✅ - Lần cuối 20/2/2026
 # 2.  reaction()              ✅ - Lần cuối 20/2/2026
 # 3.  reaction_comment()      ✅ - Lần cuối 20/2/2026
-# 4.  share()                 ✅ - Lần cuối 20/2/2026
+# 4.  share()                 ✅ - Lần cuối 22/2/2026
 # 5.  share_with_message()    ✅ - Lần cuối 21/2/2026
 # 6.  rate_page()             ✅ - Lần cuối 21/2/2026
 # 7.  comment()               ✅ - Lần cuối 20/2/2026
@@ -243,13 +243,16 @@ class FacebookAPI:
             "doc_id":            "7047198228715224",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=self.headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=self.headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         if '{"data":{"feedback_react":{"feedback":{"id":' in response.text:
             return True
@@ -322,13 +325,16 @@ class FacebookAPI:
             "doc_id":            "7616998081714004",  # ← khác với reaction post
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=self.headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=self.headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         if '{"data":{"feedback_react":{"feedback":{"id":' in response.text:
             return True
@@ -440,7 +446,7 @@ class FacebookAPI:
             "__relay_internal__pv__GroupsCometGYSJFeedItemHeightrelayprovider": 206,
             "__relay_internal__pv__ShouldEnableBakedInTextStoriesrelayprovider": False,
             "__relay_internal__pv__StoriesShouldIncludeFbNotesrelayprovider": False,
-            "__relay_internal__pv__groups_comet_use_glvrelayprovider": False,
+            "__relay_internal__pv__groups_comet_use_glvrelayprovider": True,
             "__relay_internal__pv__GHLShouldChangeSponsoredAuctionDistanceFieldNamerelayprovider": True,
             "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV1relayprovider": False,
             "__relay_internal__pv__GHLShouldUseSponsoredAuctionLabelFieldNameV2relayprovider": True,
@@ -450,18 +456,18 @@ class FacebookAPI:
             "av":                          self.actor_id,
             "__user":                      self.actor_id,
             "__a":                         "1",
-            "__hs":                        "20504.HCSV2:comet_pkg.2.1...0",
+            "__hs":                        "20506.HCSV2:comet_pkg.2.1...0",
             "dpr":                         "1",
-            "__ccg":                       "GOOD",
-            "__rev":                       "1033773198",
+            "__ccg":                       "EXCELLENT",
+            "__rev":                       "1033852585",
             "fb_dtsg":                     self.fb_dtsg,
             "jazoest":                     self.jazoest,
             "lsd":                         self.lsd,
             "fb_api_caller_class":         "RelayModern",
             "fb_api_req_friendly_name":    "ComposerStoryCreateMutation",
-            "variables":                   _json.dumps(variables),  # dùng json.dumps để tránh lỗi escape
+            "variables":                   _json.dumps(variables),
             "server_timestamps":           "true",
-            "doc_id":                      "26190424397221027",     # ⚠️ Cập nhật 2026-02-20
+            "doc_id":                      "26264075519853494",     # ⚠️ Cập nhật 2026-02-22
         }
 
         # Header bổ sung từ request thật
@@ -473,13 +479,16 @@ class FacebookAPI:
             "x-asbd-id":              "359341",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         # Kiểm tra text trước, tránh crash khi response rỗng hoặc redirect
         if not response.text or '"errors"' not in response.text:
@@ -490,10 +499,9 @@ class FacebookAPI:
             resp_json = response.json()
             for err in resp_json.get("errors", []):
                 if err.get("severity") == "CRITICAL":
-                    print(f"   ⚠️ Lỗi share: {err.get('description', err.get('message', ''))}")
                     break
         except Exception:
-            print(f"   ⚠️ Response không parse được: {response.status_code} | {response.text[:200]}")
+            pass
         return False
 
     # ──────────────────────────────────────────────────────────────
@@ -651,13 +659,16 @@ class FacebookAPI:
             "referer":                f"https://www.facebook.com/profile.php?id={self.actor_id}",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         if not response.text or '"errors"' not in response.text:
             return True
@@ -666,10 +677,10 @@ class FacebookAPI:
             resp_json = response.json()
             for err in resp_json.get("errors", []):
                 if err.get("severity") == "CRITICAL":
-                    print(f"   ⚠️ Lỗi share_with_message: {err.get('description', err.get('message', ''))}")
-                    break
+                    # print(f"   ⚠️ Lỗi share_with_message: {err.get('description', err.get('message', ''))}")
+                    return False
         except Exception:
-            print(f"   ⚠️ Response không parse được: {response.status_code} | {response.text[:200]}")
+            pass
         return False
 
     # ──────────────────────────────────────────────────────────────
@@ -825,26 +836,28 @@ class FacebookAPI:
             "referer":                f"https://www.facebook.com/profile.php?id={page_id}&sk=reviews",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         if not response.text or '"errors"' not in response.text:
             return True
 
         try:
             resp_json = response.json()
-            all_errors = resp_json.get("errors", [])
-            for err in all_errors:
+            for err in resp_json.get("errors", []):
                 if err.get("severity") == "CRITICAL":
-                    print(f"   ⚠️ Lỗi rate_page: {err.get('description', err.get('message', ''))}")
-                    break
-        except Exception as e:
-            print(f"   ⚠️ Response không parse được: {response.status_code} | {response.text[:500]}")
+                    # print(f"   ⚠️ Lỗi rate_page: {err.get('description', err.get('message', ''))}")
+                    return False
+        except Exception:
+            pass
         return False
 
     # ──────────────────────────────────────────────────────────────
@@ -941,32 +954,32 @@ class FacebookAPI:
             "referer":            f"https://www.facebook.com/profile.php?id={self.actor_id}",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
-        # Thành công khi response chứa comment ID (dạng base64)
         if '"comment_create"' in response.text and '"feedback"' in response.text:
             return True
-
-        # Không có lỗi critical cũng coi là OK
         if not response.text or '"errors"' not in response.text:
             return True
 
-        # In lỗi debug
         try:
             resp_json = response.json()
             critical = [e for e in resp_json.get("errors", []) if e.get("severity") == "CRITICAL"]
             if critical:
-                print(f"   ⚠️ Lỗi comment: {critical[0].get('description', critical[0].get('message', ''))}")
+                # print(f"   ⚠️ Lỗi comment: {critical[0].get('description', critical[0].get('message', ''))}")
+                return False
             elif not resp_json.get("errors"):
                 return True
         except Exception:
-            print(f"   ⚠️ Comment raw response: {response.text[:300]}")
+            pass
         return False
 
     # ──────────────────────────────────────────────────────────────
@@ -1030,28 +1043,29 @@ class FacebookAPI:
             "referer":            f"https://www.facebook.com/profile.php?id={page_id}",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
-        # Kiểm tra thành công: có 'IS_SUBSCRIBED' hoặc không có lỗi critical
         if '"IS_SUBSCRIBED"' in response.text or '"subscribe_status"' in response.text:
             return True
-        # In thêm thông tin debug nếu thất bại
-        if response.text:
-            try:
-                err = _json.loads(response.text)
-                critical = [e for e in err.get("errors", []) if e.get("severity") == "CRITICAL"]
-                if critical:
-                    print(f"   ⚠️ Like page lỗi: {critical[0].get('description', critical[0].get('message'))}")
-                elif not err.get("errors"):
-                    return True  # Không có lỗi gì → thành công
-            except:
-                print(f"   Raw: {response.text[:200]}")
+        try:
+            err = _json.loads(response.text)
+            critical = [e for e in err.get("errors", []) if e.get("severity") == "CRITICAL"]
+            if critical:
+                return False
+                # print(f"   ⚠️ Like page lỗi: {critical[0].get('description', critical[0].get('message'))}")
+            elif not err.get("errors"):
+                return True
+        except Exception:
+            pass
         return False
 
     # ──────────────────────────────────────────────────────────────
@@ -1113,15 +1127,17 @@ class FacebookAPI:
             "fb_api_analytics_tags": '[\"qpl_active_flow_ids=431626709\"]',
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=self.headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=self.headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
-        # Thành công khi actor_id xuất hiện trong response
         if self.actor_id in response.text:
             return True
         return False
@@ -1171,17 +1187,18 @@ class FacebookAPI:
             "doc_id":            "25581663504782089",
         }
 
-        response = requests.post(
-            "https://www.facebook.com/api/graphql/",
-            headers=self.headers,
-            data=data,
-            proxies=self.proxies,
-            timeout=15
-        )
+        try:
+            response = requests.post(
+                "https://www.facebook.com/api/graphql/",
+                headers=self.headers,
+                data=data,
+                proxies=self.proxies,
+                timeout=15
+            )
+        except Exception:
+            return False
 
         if '"subscribe_status":"IS_SUBSCRIBED"' in response.text:
             return True
         return False
-
-
 
